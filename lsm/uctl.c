@@ -72,7 +72,7 @@ struct __ctl_cmd
 {
     struct __ctl_cmd_base base;
     char data[DATA_LEN];
-	int len;
+    int len;
 };
 
 
@@ -127,7 +127,7 @@ static struct nlmsghdr *init_nlh(void)
     struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(len);
     if (nlh == 0) {
         LOGE("malloc error:%s, len:%d\n", strerror(errno), len);
-		return 0;
+	    return 0;
     }
     return nlh;    
 }
@@ -163,83 +163,83 @@ static int init_netlink(void)
 static void show_usage(void)
 {
     LOGW("Unix socket of this proxy process receive string formatted command.\n \
-		the first char of the string is command type, and followed by the parameter if necessary.\n \
-		e exit the proxy proxess\n \
-		O enable my LSM in kernel\n \
-		o disable my LSM in kernel\n \
-		P set pid. as a result the pid program will be allowed to execute some operations like mount, unlink, chmod, chown etc.\n \
-		F set file. as a result the file can not be deleted.\n \
-		f get file. retrieve the setted protected file.\n");
+	    the first char of the string is command type, and followed by the parameter if necessary.\n \
+	    e exit the proxy proxess\n \
+	    O enable my LSM in kernel\n \
+	    o disable my LSM in kernel\n \
+	    P set pid. as a result the pid program will be allowed to execute some operations like mount, unlink, chmod, chown etc.\n \
+	    F set file. as a result the file can not be deleted.\n \
+	    f get file. retrieve the setted protected file.\n");
 }
 
 static int check_caller_permission(int uid, int pid) {
-	if (uid == 0) {
-		return 0;
-	}
-	return 1;
+    if (uid == 0) {
+	    return 0;
+    }
+    return 1;
 }
 
 static int accept_local_sock(int serv_fd)
 {
-	struct sockaddr_un sun;
-	struct ucred creds;
-	int fd = accept(serv_fd, NULL, NULL);
-	if (fd < 0) {
+    struct sockaddr_un sun;
+    struct ucred creds;
+    int fd = accept(serv_fd, NULL, NULL);
+    if (fd < 0) {
 	    LOGE("accept error:%s", strerror(errno));
-		return -1;
-	}
+	    return -1;
+    }
 	
-	memset(&creds, 0, sizeof(creds));
-	socklen_t size = sizeof(creds);
-	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &size) == 0) {
+    memset(&creds, 0, sizeof(creds));
+    socklen_t size = sizeof(creds);
+    if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &size) == 0) {
 	    if (check_caller_permission(creds.uid, creds.pid) == 0) {
-			return fd;
+            return fd;
 	    }		
-	}
+    }
 
-	close(fd);	
-	return -1;
+    close(fd);	
+    return -1;
 }
 
 static int create_local_sock()
 {
-	int fd;
-	int len;
-	struct sockaddr_un addr;  
-	struct timeval tv;	
+    int fd;
+    int len;
+    struct sockaddr_un addr;  
+    struct timeval tv;	
 
-	fd = socket(AF_LOCAL, SOCK_STREAM, 0);
-	if (fd < 0) {
+    fd = socket(AF_LOCAL, SOCK_STREAM, 0);
+    if (fd < 0) {
 	    LOGE("create Unix socket error:%s", strerror(errno));
-		return -1;
-	}
+        return -1;
+    }
 
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_LOCAL;
-	addr.sun_path[0] = '\0';
-	strcpy(&addr.sun_path[1], LOCAL_SOCKET_NAME);
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_LOCAL;
+    addr.sun_path[0] = '\0';
+    strcpy(&addr.sun_path[1], LOCAL_SOCKET_NAME);
 
     int i;
-	for (i = 0; i < 3; i++) {
-		len = offsetof(struct sockaddr_un, sun_path) + strlen(LOCAL_SOCKET_NAME) + 1;
-		if (bind(fd, (struct sockaddr *)&addr, len) < 0) {
-			LOGW("bind failed: %s", strerror(errno));
-			if (errno != EADDRINUSE) {
-			    close(fd);
-			    return -1;
-			}
-			sleep(1);			
-		} else {
-			if (listen(fd, 5) < 0) {
-				LOGE("listen error: %s", strerror(errno));
-				close(fd);
-				return -1;
-			}
-			break;
-		}
-	}
+    for (i = 0; i < 3; i++) {
+	    len = offsetof(struct sockaddr_un, sun_path) + strlen(LOCAL_SOCKET_NAME) + 1;
+	    if (bind(fd, (struct sockaddr *)&addr, len) < 0) {
+	        LOGW("bind failed: %s", strerror(errno));
+	        if (errno != EADDRINUSE) {
+	            close(fd);
+		        return -1;
+	        }
+	        sleep(1);			
+	    } else {
+	        if (listen(fd, 5) < 0) {
+	            LOGE("listen error: %s", strerror(errno));
+		        close(fd);
+		        return -1;
+	        }
+	        break;
+	    }
+    }
 
-	return fd;
+    return fd;
 }
 
 static int fill_pid(struct nlmsghdr *nlh, int pid) {        	
@@ -258,15 +258,15 @@ static int fill_pid(struct nlmsghdr *nlh, int pid) {
     iov.iov_base = (void *)nlh;  
     iov.iov_len = nlh->nlmsg_len;  
 
-	char *data = DATA_OF_CTL((struct __ctl_cmd *)ctl);
-	*(int *)data = pid;
-	return 0;
+    char *data = DATA_OF_CTL((struct __ctl_cmd *)ctl);
+    *(int *)data = pid;
+    return 0;
 }
 
 static int fill_file(struct nlmsghdr *nlh, char *file) {
-	if (strlen(file) >= DATA_LEN) {
-		return -1;
-	}
+    if (strlen(file) >= DATA_LEN) {
+	    return -1;
+    }
     int seq = get_rand();
     int payload = sizeof(struct __ctl_cmd);
     int len = NLMSG_SPACE(payload);    
@@ -282,16 +282,16 @@ static int fill_file(struct nlmsghdr *nlh, char *file) {
     iov.iov_base = (void *)nlh;  
     iov.iov_len = nlh->nlmsg_len;  
 
-	char *data = DATA_OF_CTL((struct __ctl_cmd *)ctrl);
-	strncpy(data, file, DATA_LEN);
-	return 0;
+    char *data = DATA_OF_CTL((struct __ctl_cmd *)ctrl);
+    strncpy(data, file, DATA_LEN);
+    return 0;
 }
 
 
 static int parse_command(int fd, struct nlmsghdr *nlh) {
-	char data[1024];
-	int len = read(fd, data, sizeof(data)-1);
-	if (len > 0) {
+    char data[1024];
+    int len = read(fd, data, sizeof(data)-1);
+    if (len > 0) {
 		data[len] = 0;
 		char cmd = data[0];
 		switch (cmd) {
