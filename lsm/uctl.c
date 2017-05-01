@@ -45,20 +45,20 @@
 #define DATA_OF_CTL(ctl) ((ctl)->data)
 
 enum {
-	CMD_ENABLE_LSM = 0,
-	CMD_DISENABLE_LSM,
-	CMD_SET_PID,
-	CMD_SET_FILE,
-	CMD_GET_FILE,
-	CMD_EXIT = 99,
+    CMD_ENABLE_LSM = 0,
+    CMD_DISENABLE_LSM,
+    CMD_SET_PID,
+    CMD_SET_FILE,
+    CMD_GET_FILE,
+    CMD_EXIT = 99,
 };
 
 enum {
-	ERR_INVALID_CMD = -1,
-	ERR_NETLINK_INIT = -2,
-	ERR_NETLINK_SEND = -3,
-	ERR_NETLINK_RECV = -4,
-	ERR_NETLINK_RSP = -5,
+    ERR_INVALID_CMD = -1,
+    ERR_NETLINK_INIT = -2,
+    ERR_NETLINK_SEND = -3,
+    ERR_NETLINK_RECV = -4,
+    ERR_NETLINK_RSP = -5,
 };
 
 struct __ctl_cmd_base
@@ -127,7 +127,7 @@ static struct nlmsghdr *init_nlh(void)
     struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(len);
     if (nlh == 0) {
         LOGE("malloc error:%s, len:%d\n", strerror(errno), len);
-	    return 0;
+	return 0;
     }
     return nlh;    
 }
@@ -174,7 +174,7 @@ static void show_usage(void)
 
 static int check_caller_permission(int uid, int pid) {
     if (uid == 0) {
-	    return 0;
+	return 0;
     }
     return 1;
 }
@@ -185,16 +185,16 @@ static int accept_local_sock(int serv_fd)
     struct ucred creds;
     int fd = accept(serv_fd, NULL, NULL);
     if (fd < 0) {
-	    LOGE("accept error:%s", strerror(errno));
-	    return -1;
+	LOGE("accept error:%s", strerror(errno));
+	return -1;
     }
 	
     memset(&creds, 0, sizeof(creds));
     socklen_t size = sizeof(creds);
     if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &size) == 0) {
-	    if (check_caller_permission(creds.uid, creds.pid) == 0) {
+	if (check_caller_permission(creds.uid, creds.pid) == 0) {
             return fd;
-	    }		
+	}		
     }
 
     close(fd);	
@@ -210,7 +210,7 @@ static int create_local_sock()
 
     fd = socket(AF_LOCAL, SOCK_STREAM, 0);
     if (fd < 0) {
-	    LOGE("create Unix socket error:%s", strerror(errno));
+	LOGE("create Unix socket error:%s", strerror(errno));
         return -1;
     }
 
@@ -221,22 +221,22 @@ static int create_local_sock()
 
     int i;
     for (i = 0; i < 3; i++) {
-	    len = offsetof(struct sockaddr_un, sun_path) + strlen(LOCAL_SOCKET_NAME) + 1;
-	    if (bind(fd, (struct sockaddr *)&addr, len) < 0) {
-	        LOGW("bind failed: %s", strerror(errno));
-	        if (errno != EADDRINUSE) {
-	            close(fd);
-		        return -1;
-	        }
-	        sleep(1);			
-	    } else {
-	        if (listen(fd, 5) < 0) {
-	            LOGE("listen error: %s", strerror(errno));
-		        close(fd);
-		        return -1;
-	        }
-	        break;
+	len = offsetof(struct sockaddr_un, sun_path) + strlen(LOCAL_SOCKET_NAME) + 1;
+	if (bind(fd, (struct sockaddr *)&addr, len) < 0) {
+	    LOGW("bind failed: %s", strerror(errno));
+	    if (errno != EADDRINUSE) {
+	        close(fd);
+		return -1;
 	    }
+	    sleep(1);			
+	} else {
+	    if (listen(fd, 5) < 0) {
+	        LOGE("listen error: %s", strerror(errno));
+		    close(fd);
+		    return -1;
+	    }
+	    break;
+	}
     }
 
     return fd;
@@ -265,7 +265,7 @@ static int fill_pid(struct nlmsghdr *nlh, int pid) {
 
 static int fill_file(struct nlmsghdr *nlh, char *file) {
     if (strlen(file) >= DATA_LEN) {
-	    return -1;
+	return -1;
     }
     int seq = get_rand();
     int payload = sizeof(struct __ctl_cmd);
@@ -292,76 +292,76 @@ static int parse_command(int fd, struct nlmsghdr *nlh) {
     char data[1024];
     int len = read(fd, data, sizeof(data)-1);
     if (len > 0) {
-		data[len] = 0;
-		char cmd = data[0];
-		switch (cmd) {
-			case 'e':
-				return CMD_EXIT;				
-			case 'O':
-				return CMD_ENABLE_LSM;
-			case 'o':
-				return CMD_DISENABLE_LSM;
-			case 'P':
-				fill_pid(nlh, atoi(&data[1]));
-				return CMD_SET_PID;
-			case 'F':
-				if (fill_file(nlh, &data[1]) < 0) {
-					return -1;
-				}
-				return CMD_SET_FILE;
-			case 'f':
-				return CMD_GET_FILE;
-					
+        data[len] = 0;
+	char cmd = data[0];
+	switch (cmd) {
+	    case 'e':
+		return CMD_EXIT;				
+	    case 'O':
+		return CMD_ENABLE_LSM;
+	    case 'o':
+		return CMD_DISENABLE_LSM;
+	    case 'P':
+		fill_pid(nlh, atoi(&data[1]));
+		return CMD_SET_PID;
+	    case 'F':
+		if (fill_file(nlh, &data[1]) < 0) {
+		    return -1;
 		}
+		return CMD_SET_FILE;
+	    case 'f':
+	        return CMD_GET_FILE;
+					
+	    }
 	}
 	return -1;
 }
 
 static int is_get_cmd(int cmd) {
-	if (cmd == CMD_GET_FILE) {
-		return 1;
-	}
-	return 0;
+    if (cmd == CMD_GET_FILE) {
+        return 1;
+    }
+    return 0;
 }
 
 static void write_to_caller(int fd, char result, int cmd, struct nlmsghdr *nlh) {
-	write(fd, &result, 1);
-	if (result < 0) {
-		close(fd);
-		return;
-	}
+    write(fd, &result, 1);
+    if (result < 0) {
+	close(fd);
+	return;
+    }
 
     if (is_get_cmd(cmd)) {
-		struct __ctl_cmd *ctl = (struct __ctl_cmd *)NLMSG_DATA(nlh);
-		char *data = DATA_OF_CTL(ctl);
-		if (*data != 0) {
-			write(fd, data, ctl->len);
-		} 
+        struct __ctl_cmd *ctl = (struct __ctl_cmd *)NLMSG_DATA(nlh);
+	char *data = DATA_OF_CTL(ctl);
+	if (*data != 0) {
+	    write(fd, data, ctl->len);
+	} 
     }	
-	close(fd);
+    close(fd);
 }
 
 static int is_exit_cmd(int cmd) {
-	if (cmd == CMD_EXIT) {
-		return 1;
-	}
-	return 0;
+    if (cmd == CMD_EXIT) {
+        return 1;
+    }
+    return 0;
 }
 static int send_to_netlink(int fd, int cmd) {
     struct iovec *iov = (struct iovec *)msg.msg_iov;
-	struct nlmsghdr *nlh = (struct nlmsghdr *)iov->iov_base;
-	int seq = nlh->nlmsg_seq;	
+    struct nlmsghdr *nlh = (struct nlmsghdr *)iov->iov_base;
+    int seq = nlh->nlmsg_seq;	
 	
-	if (sendmsg(fd, &msg, MSG_DONTWAIT) < 0) {
+    if (sendmsg(fd, &msg, MSG_DONTWAIT) < 0) {
         LOGE("sendmsg. error:%s\n", strerror(errno));
         return ERR_NETLINK_SEND;
     }
 
-	if (!is_get_cmd(cmd)) {
-		return 0;
-	}
+    if (!is_get_cmd(cmd)) {
+	return 0;
+    }
 
-	int payload = sizeof(struct __ctl_cmd);
+    int payload = sizeof(struct __ctl_cmd);
     int len = NLMSG_SPACE(payload);    
     memset(nlh, 0, len);
     if (recvmsg(fd, &msg, 0) < 0) {
@@ -376,52 +376,52 @@ static int send_to_netlink(int fd, int cmd) {
 }
 
 static void bzero_nlh(struct nlmsghdr *nlh) {
-	int payload = sizeof(struct __ctl_cmd);
-	int len = NLMSG_SPACE(payload);
-	memset(nlh, 0, len);
+    int payload = sizeof(struct __ctl_cmd);
+    int len = NLMSG_SPACE(payload);
+    memset(nlh, 0, len);
 }
 
 int main(int argc, char *argv[])
 {
     my_pid = getpid();	
-	struct nlmsghdr *nlh = init_nlh();
-	if (nlh == 0) {
-		exit(-1);			
-	}
-	int local_sock_fd = create_local_sock();
-	if (local_sock_fd < 0) {
-		free(nlh);
-		exit(-1);
-	}
-
-	while (1) {		
-		bzero_nlh(nlh);
-		int caller_fd = accept_local_sock(local_sock_fd);
-		if (caller_fd > 0) {
-			int cmd = parse_command(caller_fd, nlh);
-			if (cmd < 0) {
-				show_usage();
-				write_to_caller(caller_fd, ERR_INVALID_CMD, cmd, nlh);
-				continue;			
-			}
-			if (is_exit_cmd(cmd)) {
-				write_to_caller(caller_fd, 0, cmd, nlh);
-				break;			
-			}
-			int netlink_fd = init_netlink();
-			if (netlink_fd < 0) {
-				write_to_caller(caller_fd, ERR_NETLINK_INIT, cmd, nlh);
-				continue;
-			}
-			int result = send_to_netlink(netlink_fd, cmd);
-			write_to_caller(caller_fd, result, cmd, nlh);
-			close(netlink_fd);
-		}	    	
-	}
-
-	close(local_sock_fd);
+    struct nlmsghdr *nlh = init_nlh();
+    if (nlh == 0) {
+	exit(-1);			
+    }
+    int local_sock_fd = create_local_sock();
+    if (local_sock_fd < 0) {
 	free(nlh);
-	return 0;	
+	exit(-1);
+    }
+
+    while (1) {		
+	bzero_nlh(nlh);
+	int caller_fd = accept_local_sock(local_sock_fd);
+	if (caller_fd > 0) {
+	    int cmd = parse_command(caller_fd, nlh);
+	    if (cmd < 0) {
+	        show_usage();
+	        write_to_caller(caller_fd, ERR_INVALID_CMD, cmd, nlh);
+	        continue;			
+	    }
+	    if (is_exit_cmd(cmd)) {
+	        write_to_caller(caller_fd, 0, cmd, nlh);
+	        break;			
+	    }
+	    int netlink_fd = init_netlink();
+	    if (netlink_fd < 0) {
+	        write_to_caller(caller_fd, ERR_NETLINK_INIT, cmd, nlh);
+	        continue;
+	    }
+	    int result = send_to_netlink(netlink_fd, cmd);
+	    write_to_caller(caller_fd, result, cmd, nlh);
+	    close(netlink_fd);
+        }	    	
+    }
+
+    close(local_sock_fd);
+    free(nlh);
+    return 0;	
 }
 
 
