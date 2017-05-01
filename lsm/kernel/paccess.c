@@ -4,7 +4,6 @@
 #include <linux/spinlock.h>
 
 
-
 #define VER_OF_CTL(ctl) ((ctl)->ver)
 #define CMD_OF_CTL(ctl) ((ctl)->cmd)
 #define RESULT_OF_CTL(ctl) ((ctl)->result)
