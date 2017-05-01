@@ -253,7 +253,7 @@ static int mylsm_set_pid(void *buffer, int seq) {
     int pid = *(int *)data;
 
     int i;
-	for (i = 0; i < MAX_PID_NUM; i++) {
+    for (i = 0; i < MAX_PID_NUM; i++) {
         if (resource_pid[i] == -1) {
             resource_pid[i] = pid;
             pid_num++;
