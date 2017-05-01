@@ -214,8 +214,7 @@ static struct security_operations my_security_ops = {
 void resource_init(void)
 {
     int i;
-    for (i = 0; i < MAX_PID_NUM; i++)
-    {
+    for (i = 0; i < MAX_PID_NUM; i++) {
         resource_pid[i] = -1;
     }
     memset(resource_file, 0, sizeof(resource_file));
