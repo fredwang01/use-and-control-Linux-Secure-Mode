@@ -12,11 +12,11 @@
 extern struct net init_net;
 
 enum {
-	CMD_ENABLE_LSM = 0,
-	CMD_DISENABLE_LSM,
-	CMD_SET_PID,
-	CMD_SET_FILE,
-	CMD_GET_FILE,
+    CMD_ENABLE_LSM = 0,
+    CMD_DISENABLE_LSM,
+    CMD_SET_PID,
+    CMD_SET_FILE,
+    CMD_GET_FILE,
 };
 
 enum
@@ -56,7 +56,7 @@ static int my_task_kill(struct task_struct *p, struct siginfo *info, int sig, u3
         return 0;
     }
     if (pid_num > 0) {
-		int i;
+	int i;
         for (i = 0; i < MAX_PID_NUM; i++) {
             if (resource_pid[i] == p->pid) {
                 LOGW("not allowed to kill the protected process:%s\n", p->comm);
@@ -121,22 +121,22 @@ static int entry_check(struct dentry *dentry, int type)
             return 0;
         }
         for (i = 0; i < PATH_DEPTH; i++) {
-			entry[i] = 0;
+	    entry[i] = 0;
         }
 
         i = 0;
         entry[0] = dentry->d_iname;
         while (true) {
-			i++;	
-		    pdn = dn->d_parent;
-		    if (pdn == 0) {
-		        break;
-		    }
-		    if (i >= PATH_DEPTH) {
-		        break;
-		    }
+	    i++;	
+            pdn = dn->d_parent;
+            if (pdn == 0) {
+		break;
+            }
+	    if (i >= PATH_DEPTH) {
+	        break;
+            }
             entry[i] = pdn->d_iname;               
-	        dn = pdn;      
+	    dn = pdn;      
         }
 
         depth = i;
@@ -199,13 +199,13 @@ static int my_path_chown(struct path *path, uid_t uid, gid_t gid)
 
 
 static struct security_operations my_security_ops = {
-	.name                = "my_lsm",
+    .name                = "my_lsm",
 #ifdef CONFIG_SECURITY_PATH
-	.path_unlink         = my_path_unlink,
-	.path_rmdir          = my_path_rmdir,
+    .path_unlink         = my_path_unlink,
+    .path_rmdir          = my_path_rmdir,
     .path_chmod          = my_path_chmod,
     .path_chown          = my_path_chown,
-	.path_rename         = my_path_rename,
+    .path_rename         = my_path_rename,
 #endif
     .task_kill           = my_task_kill,
 };
@@ -242,15 +242,15 @@ static int mylsm_disenable(void *buffer, int seq)
 }
 
 static int mylsm_set_pid(void *buffer, int seq) {
-	if (enabled == 0) {
-		return 0;
-	}
-	if (pid_num >= MAX_PID_NUM) {
-		return 0;
-	}
-	struct __ctl_cmd *ctl = (struct __ctl_cmd *)buffer;
-	char *data = DATA_OF_CTL(ctl);
-	int pid = *(int *)data;
+    if (enabled == 0) {
+	return 0;
+    }
+    if (pid_num >= MAX_PID_NUM) {
+	return 0;
+    }
+    struct __ctl_cmd *ctl = (struct __ctl_cmd *)buffer;
+    char *data = DATA_OF_CTL(ctl);
+    int pid = *(int *)data;
 
     int i;
 	for (i = 0; i < MAX_PID_NUM; i++) {
@@ -263,21 +263,21 @@ static int mylsm_set_pid(void *buffer, int seq) {
 }
 
 static int mylsm_set_file(void *buffer, int seq) {
-	if (enabled == 0) {
-		return 0;
-	}
-	if (file_num >= MAX_FILE_NUM) {
-		return 0;
-	}
-	struct __ctl_cmd *ctl = (struct __ctl_cmd *)buffer;
-	char *data = DATA_OF_CTL(ctl);
-	int len = strlen(data);
-	if (len >= FILE_NAME_LEN) {
-		return 0;
-	}
+    if (enabled == 0) {
+	return 0;
+    }
+    if (file_num >= MAX_FILE_NUM) {
+        return 0;
+    }
+    struct __ctl_cmd *ctl = (struct __ctl_cmd *)buffer;
+    char *data = DATA_OF_CTL(ctl);
+    int len = strlen(data);
+    if (len >= FILE_NAME_LEN) {
+	return 0;
+    }
 
     int i;
-	for (i = 0; i < MAX_FILE_NUM; i++) {
+    for (i = 0; i < MAX_FILE_NUM; i++) {
         if (resource_file[i][0] == 0) {
             strcpy(resource_file[i], data);
             file_num++;
@@ -287,10 +287,10 @@ static int mylsm_set_file(void *buffer, int seq) {
 }
 
 static int mylsm_get_file(void *buffer, int seq) {
-	if (enabled == 0) {
-		return;
-	}
-	int payload = NLMSG_SPACE(sizeof(struct __ctl_cmd));
+    if (enabled == 0) {
+	return;
+    }
+    int payload = NLMSG_SPACE(sizeof(struct __ctl_cmd));
     struct sk_buff *skb_nltmp = alloc_skb(NLMSG_SPACE(payload), GFP_ATOMIC);
     if (skb_nltmp == 0) {
         LOGE("alloc socket buffer failed. len:%d", payload);
@@ -305,25 +305,25 @@ static int mylsm_get_file(void *buffer, int seq) {
     struct __ctl_cmd_base *ctl_base = (struct __ctl_cmd_base *)data;
     set_cmd_ver(ctl_base);
     CMD_OF_CTL(ctl_base) = CMD_GET_FILE;
-	struct __ctl_cmd *ctl = (struct __ctl_cmd *)data;
-	DATA_OF_CTL(ctl)[0] = 0;
-	ctl->len = 0;
-	if (file_num > 0) {
-		int i;
-		int len;
-		int total = 0;
-		data = DATA_OF_CTL(ctl);
-		for (i = 0; i < MAX_FILE_NUM; i++) {
+    struct __ctl_cmd *ctl = (struct __ctl_cmd *)data;
+    DATA_OF_CTL(ctl)[0] = 0;
+    ctl->len = 0;
+    if (file_num > 0) {
+	int i;
+        int len;
+	int total = 0;
+	data = DATA_OF_CTL(ctl);
+	for (i = 0; i < MAX_FILE_NUM; i++) {
             if (resource_file[i][0] != 0) {
                 len = strlen(resource_file[i]);
                 strcpy(data, resource_file[i]);
                 data[len] = 0;
                 data = &data[len + 1];
-				total += (len + 1);
+		total += (len + 1);
             }               
         }
-		ctl->len = total;
-	}
+	ctl->len = total;
+    }
     RESULT_OF_CTL(ctl_base) = 0;
 
     int result = netlink_unicast(socknl, skb_nltmp, user_pid, MSG_DONTWAIT);
@@ -410,19 +410,19 @@ __initcall(netlink_init);
 int __init my_security_init(void) 
 {
     if (!security_module_enable(&my_security_ops)) {
-		LOGE("my security module enable failed.\n");
+	LOGE("my security module enable failed.\n");
         return 0;
     }
 
-	/* register ourselves with the security framework */
-	if (register_security(&my_security_ops)) {
-		LOGE("register my security machenism failed.\n");
+    /* register ourselves with the security framework */
+    if (register_security(&my_security_ops)) {
+	LOGE("register my security machenism failed.\n");
         return 0;
     }
         
     spin_lock_init(&lock);    
     enabled = 0;
-	return 0;
+    return 0;
 }
 
 security_initcall(my_security_init);
