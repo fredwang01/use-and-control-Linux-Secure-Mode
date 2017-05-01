@@ -1,4 +1,4 @@
-"# use-and-control-Linux-Secure-Mode" 
+==========use and control Linux Secure Mode=================
 
 Linux secure mode(LSM) is a kind of security mechanism which can limit to execute some sensitive operations no matter what user is. LSM provide some hook functions to check if the current process can be allowed to execute these sensitive operations like `chmod`, `chown`, `unlink`, `rm`, `mount` and so on.
 
@@ -43,7 +43,7 @@ A proxy process(`uctl.c`) in user space receive the command from the caller to c
   +----------------+                 +---------------+
                                              ^ NETLINK socket
   -------------------------------------------|-----------------------
-                                             |
+                                             |            kernel space
                                              v
                                      +---------------+
                                      |    my LSM     |
