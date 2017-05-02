@@ -13,7 +13,7 @@ I compile my custom LSM into kernel source code based on version 2.6, below is t
   subdir-y += my_lsm  
   obj-y += my_lsm/built-in.o
   ```
-* Edit and save the file include/linux/netlink.h, add the following line:
+* Edit and save the file `include/linux/netlink.h`, add the following line:
    ```
    #define NETLINK_MYLSM  25
    ```
