@@ -32,7 +32,7 @@ I compile my custom LSM into kernel source code based on version 2.6, below is t
    ```
    save and exit.
 
-* Run `make` at the root directory of kernel to compile linux source code, and you will get the OS image if successed.
+* Run `make` at the root directory of kernel to compile linux source code, and you will get the OS image if successful.
 
 **Control the LSM behaviour**
 
