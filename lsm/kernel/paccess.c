@@ -19,8 +19,7 @@ enum {
     CMD_GET_FILE,
 };
 
-enum
-{
+enum {
     ENTRY_RM = 0,
     ENTRY_RMDIR,
     ENTRY_RENAME,
